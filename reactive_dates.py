@@ -1,4 +1,5 @@
-from datetime import timedelta as td
+from datetime import timedelta
+from rx import Observable
 
 
 def monthly(day, r):
@@ -53,6 +54,15 @@ def every_x_years(startday, x):
     return lambda dt: dt.month == startday.month and dt.day == startday.day and (dt.year - startday.year) % x == 0
 
 
-def daily(r):
-    f, t = r
-    return [f + td(days=x) for x in range((t - f).days + 1)]
+def daily_observable(date_range):
+    date_from, date_to = date_range
+    return Observable.from_(range((date_to - date_from).days + 1)) \
+        .map(lambda d: timedelta(d) + date_from)
+
+
+def daily(date_range):
+    result = []
+    daily_observable(date_range). \
+        map(lambda d: result.append(d)). \
+        subscribe()
+    return result
