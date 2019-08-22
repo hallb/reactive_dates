@@ -1,69 +1,66 @@
-from datetime import timedelta
-from rx import from_
-from rx.operators import map
+from datetime import timedelta, date
+from typing import Callable, List, Tuple, Iterator
+
+DatePredicate = Callable[[date], bool]
+DateIterator = Iterator[date]
+DateRange = Tuple[date, date]
 
 
-def monthly(day, r):
+def monthly(day: int, r: DateRange) -> DateIterator:
     return filter(monthlyL(day), daily(r))
 
 
-def monthlyL(day_of_month=1):
+def monthlyL(day_of_month: int = 1) -> DatePredicate:
     return lambda dt: dt.day == day_of_month
 
 
-def onL(day):
+def onL(day: date) -> DatePredicate:
     return lambda dt: dt == day
 
 
-def orL(p1, p2):
+def orL(p1: DatePredicate, p2: DatePredicate) -> DatePredicate:
     return lambda dt: p1(dt) or p2(dt)
 
 
-def andL(p1, p2):
+def andL(p1: DatePredicate, p2: DatePredicate) -> DatePredicate:
     return lambda dt: p1(dt) and p2(dt)
 
 
-def before(day):
+def before(day: date) -> DatePredicate:
     return lambda dt: dt < day
 
 
-def after(day):
+def after(day: date) -> DatePredicate:
     return lambda dt: dt > day
 
 
-def weekly(start_day, r):
+def weekly(start_day: date, r) -> DateIterator:
     return filter(weeklyL(start_day), daily(r))
 
 
-def weeklyL(startday):
-    return every_x_days(startday, 7)
+def weeklyL(start_day: date) -> DatePredicate:
+    return every_x_days(start_day, 7)
 
 
-def annuallyL(startday):
-    return every_x_years(startday, 1)
+def annuallyL(start_day: date) -> DatePredicate:
+    return every_x_years(start_day, 1)
 
 
-def fortnightlyL(startday):
-    return every_x_days(startday, 14)
+def fortnightlyL(start_day: date) -> DatePredicate:
+    return every_x_days(start_day, 14)
 
 
-def every_x_days(startday, x):
-    return lambda dt: (dt - startday).days % x == 0
+def every_x_days(start_day: date, x: int) -> DatePredicate:
+    return lambda dt: (dt - start_day).days % x == 0
 
 
-def every_x_years(startday, x):
-    return lambda dt: dt.month == startday.month and dt.day == startday.day and (dt.year - startday.year) % x == 0
+def every_x_years(start_day: date, x: int) -> DatePredicate:
+    return lambda dt: dt.month == start_day.month and dt.day == start_day.day and (dt.year - start_day.year) % x == 0
 
 
-def daily_observable(date_range):
+def daily(date_range: DateRange) -> DateIterator:
     date_from, date_to = date_range
-    return from_(range((date_to - date_from).days + 1)) \
-        .pipe(map(lambda d: timedelta(d) + date_from))
-
-
-def daily(date_range):
-    result = []
-    daily_observable(date_range). \
-        pipe(map(lambda d: result.append(d))). \
-        subscribe()
-    return result
+    current_date = date_from + timedelta(-1)
+    while current_date < date_to:
+        current_date = current_date + timedelta(1)
+        yield current_date
