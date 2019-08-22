@@ -1,5 +1,6 @@
 from datetime import timedelta
-from rx import Observable
+from rx import from_
+from rx.operators import map
 
 
 def monthly(day, r):
@@ -56,13 +57,13 @@ def every_x_years(startday, x):
 
 def daily_observable(date_range):
     date_from, date_to = date_range
-    return Observable.from_(range((date_to - date_from).days + 1)) \
-        .map(lambda d: timedelta(d) + date_from)
+    return from_(range((date_to - date_from).days + 1)) \
+        .pipe(map(lambda d: timedelta(d) + date_from))
 
 
 def daily(date_range):
     result = []
     daily_observable(date_range). \
-        map(lambda d: result.append(d)). \
+        pipe(map(lambda d: result.append(d))). \
         subscribe()
     return result
