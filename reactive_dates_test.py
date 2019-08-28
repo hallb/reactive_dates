@@ -25,7 +25,7 @@ class TestDateFunction(unittest.TestCase):
 
     def test_daily(self):
         r = (d(2012, 1, 1), d(2012, 1, 3))
-        actual = reactive_dates.daily(r)
+        actual = list(reactive_dates.daily(r))
         expected = [
             d(2012, 1, 1),
             d(2012, 1, 2),
