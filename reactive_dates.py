@@ -1,5 +1,5 @@
 from datetime import timedelta, date
-from typing import Callable, List, Tuple, Iterator
+from typing import Callable, Tuple, Iterator
 
 DatePredicate = Callable[[date], bool]
 DateIterator = Iterator[date]
